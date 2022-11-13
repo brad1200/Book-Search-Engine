@@ -5,7 +5,17 @@ const { signToken } = require('../utils/auth');
 
 const resolvers = {
     Query: {
-        me: 
+        me: async (parent, args, context) => {
+            if (context.user) {
+                const userData = await User.findOne({ _id: context.user._id })
+                    .select('-__v -password')
+                    .populate("books");
+
+                return userData;
+            }
+
+            throw new AuthenticationError('Not logged in');
+        },
     },
 
 
@@ -36,14 +46,13 @@ const resolvers = {
             return Book.findOneAndDelete({ _id: bookId });
         },
     },
-},
 };
 
 module.exports = resolvers;
 
 
-removeComment: async (parent, { thoughtId, commentId }) => {
-    return Thought.findOneAndUpdate(
-        { _id: thoughtId },
-        { $pull: { comments: { _id: commentId } } },
-        { new: true }
+// removeBook: async (parent, { bookId }) => {
+//     return Book.findOneAndUpdate(
+//         { _id: bookId },
+//         { $pull: { comments: { _id: commentId } } },
+//         { new: true }
